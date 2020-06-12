@@ -156,14 +156,14 @@ pontuacao_de_cada(Estado, Jogador, [[S,R,C]|L], [[R,C]|T]) :-
 % ==============================================================================
 % formata entrada de dados da posição
 % ==============================================================================
-formatted_space(V, Formatted) :-
-    V = x, Formatted = x.
+formata(V, Formatado) :-
+    V = x, Formatado = x.
 
-formatted_space(V, Formatted) :-
-    V = o, Formatted = o.
+formata(V, Formatado) :-
+    V = o, Formatado = o.
 
-formatted_space(V, Formatted) :-
-    V = empty, Formatted = ' '.
+formata(V, Formatado) :-
+    V = empty, Formatado = ' '.
 
 % ==============================================================================
 % estado do jogo
@@ -179,9 +179,9 @@ print_Estado(Estado) :-
 % print do jogo da velha
 % ==============================================================================
 print_Linha(Linha) :-
-    nth0(0, Linha, V0_raw), formatted_space(V0_raw, V0),
-    nth0(1, Linha, V1_raw), formatted_space(V1_raw, V1),
-    nth0(2, Linha, V2_raw), formatted_space(V2_raw, V2),
+    nth0(0, Linha, V0_raw), formata(V0_raw, V0),
+    nth0(1, Linha, V1_raw), formata(V1_raw, V1),
+    nth0(2, Linha, V2_raw), formata(V2_raw, V2),
     format("~a | ~a | ~a", [V0, V1, V2]),
     nl.
 
