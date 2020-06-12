@@ -36,14 +36,14 @@ cada(1).
 cada(2).
 
 % ==============================================================================
-% define as posicoes validas
+% define quem ganha
 % ==============================================================================
 ganhador(X, Estado) :- tres_em_uma_linha(X, Estado), X \= empty.
 ganhador(X, Estado) :- tres_em_uma_coluna(X, Estado), X \= empty.
 ganhador(X, Estado) :- tres_em_uma_diagonal(X, Estado), X \= empty.
 
 % ==============================================================================
-% define as posicoes validas
+%  linhas
 % ==============================================================================
 laco(Estado) :-
     flatten(Estado, FlatEstado),
@@ -57,7 +57,7 @@ linhas(Estado, R) :- nth0(1, Estado, R).
 linhas(Estado, R) :- nth0(2, Estado, R).
 
 % ==============================================================================
-% define as posicoes validas
+% diagonal
 % ==============================================================================
 tres_em_uma_diagonal(X, Estado) :-
     nth0(0, Estado, R0),
@@ -76,7 +76,7 @@ tres_em_uma_diagonal(X, Estado) :-
     nth0(0, R2, X).
 
 % ==============================================================================
-% define as posicoes validas
+% coluna
 % ==============================================================================
 tres_em_uma_coluna(X, Estado) :-
     nth0(0, Estado, R0),
@@ -88,7 +88,7 @@ tres_em_uma_coluna(X, Estado) :-
     nth0(I, R2, X).
 
 % ==============================================================================
-% define as posicoes validas
+% movimentos
 % ==============================================================================
 lista_de_movimentos(_, 9, []).
 
@@ -112,7 +112,7 @@ lista_de_movimentos(S, M) :-
     lista_de_movimentos(S, 0, M).
 
 % ==============================================================================
-% define as posicoes validas
+% define os pontos
 % ==============================================================================
 ponto(Estado, Jogador, Pontos) :-
     jogador(OutroJogador),
@@ -135,17 +135,17 @@ ponto(Estado, Jogador, Pontos) :-
     not(laco(Estado)),
     lista_de_movimentos(Estado, Move),
     pontuacao_de_cada(Estado, Jogador, Marcados, Move),
-    escolhe_mover(Marcados, [Pontos, _, _]).
+    escolhe(Marcados, [Pontos, _, _]).
 
 % ==============================================================================
-% define as posicoes validas
+% define as pontuações 
 % ==============================================================================
 pontuacao_de_cada(_, _, [], []).
 
 pontuacao_de_cada(Estado, Jogador, [[S,R,C]|L], [[R,C]|T]) :-
-    pega_ou_modifica(Estado, 0, R, C, Jogador, R0),
-    pega_ou_modifica(Estado, 1, R, C, Jogador, R1),
-    pega_ou_modifica(Estado, 2, R, C, Jogador, R2),
+    modifica(Estado, 0, R, C, Jogador, R0),
+    modifica(Estado, 1, R, C, Jogador, R1),
+    modifica(Estado, 2, R, C, Jogador, R2),
     N = [ R0, R1, R2],
     outro_jogador(Jogador, OutroJogador),
     ponto(N, OutroJogador, S_other),
@@ -154,7 +154,7 @@ pontuacao_de_cada(Estado, Jogador, [[S,R,C]|L], [[R,C]|T]) :-
     !.
 
 % ==============================================================================
-% define as posicoes validas
+% formata entrada de dados da posição
 % ==============================================================================
 formatted_space(V, Formatted) :-
     V = x, Formatted = x.
@@ -166,7 +166,7 @@ formatted_space(V, Formatted) :-
     V = empty, Formatted = ' '.
 
 % ==============================================================================
-% define as posicoes validas
+% estado do jogo
 % ==============================================================================
 print_Estado(Estado) :-
     write("Estado do Jogo:"),
@@ -176,7 +176,7 @@ print_Estado(Estado) :-
     fail.
 
 % ==============================================================================
-% define as posicoes validas
+% print do jogo da velha
 % ==============================================================================
 print_Linha(Linha) :-
     nth0(0, Linha, V0_raw), formatted_space(V0_raw, V0),
@@ -186,21 +186,18 @@ print_Linha(Linha) :-
     nl.
 
 % ==============================================================================
-% define as posicoes validas
+% espaços desocupados
 % ==============================================================================
 desocupado(Estado, Linha, Col) :-
     nth0(Linha, Estado, LinhaValue),
     nth0(Col, LinhaValue, Spot),
     Spot = empty.
 
-% ==============================================================================
-% define as posicoes validas
-% ==============================================================================
 start_Estado(Estado) :-
     Estado = [[empty,empty,empty], [empty,empty,empty], [empty,empty,empty]].
 
 % ==============================================================================
-% define as posicoes validas
+% print das posições validas
 % ==============================================================================
 print_cada_move(_, []) :- fail.
 
@@ -210,31 +207,28 @@ print_cada_move(Jogador, [[R,C]|T]) :-
     print_cada_move(Jogador, T).
 
 % ==============================================================================
-% define as posicoes validas
+% escolhe quem joga 
 % ==============================================================================
-extract_first([], []).
+primeiro([], []).
 
-extract_first([A|B], [A_primeiro|B_extraido]) :-
+primeiro([A|B], [A_primeiro|B_escolhido]) :-
     nth0(0, A, A_primeiro),
-    extract_first(B, B_extraido).
+    primeiro(B, B_escolhido).
+
+comeca_com(B, L) :- nth0(0, L, B).
 
 % ==============================================================================
-% define as posicoes validas
+% escolhe posiçãos
 % ==============================================================================
-begins_with(B, L) :- nth0(0, L, B).
-
-% ==============================================================================
-% define as posicoes validas
-% ==============================================================================
-escolhe_mover(Marcados, [S, R, C]) :-
+escolhe(Marcados, [S, R, C]) :-
     msort(Marcados, SortedMarcados),
-    extract_first(SortedMarcados, ClasificaPontos),
+    primeiro(SortedMarcados, ClasificaPontos),
     max_list(ClasificaPontos, MaxPontos),
-    include(call(begins_with, MaxPontos), Marcados, MoveFiltrado),
+    include(call(comeca_com, MaxPontos), Marcados, MoveFiltrado),
     random_member([S, R, C], MoveFiltrado).
 
 % ==============================================================================
-% define as posicoes validas
+% vez de qual jogador
 % ==============================================================================
 revezar(Estado, _, _) :-
     print_Estado(Estado).
@@ -247,7 +241,7 @@ revezar(Estado, AtualJogador, ProximoEstado) :-
     AtualJogador = o,
     lista_de_movimentos(Estado, Move),
     pontuacao_de_cada(Estado, AtualJogador, Marcados, Move),
-    escolhe_mover(Marcados, [_, R,C]),
+    escolhe(Marcados, [_, R,C]),
     revezar(Estado, AtualJogador, R, C, ProximoEstado).
 
 revezar(Estado, AtualJogador, ProximoEstado) :-
@@ -262,19 +256,19 @@ revezar(Estado, AtualJogador, ProximoEstado) :-
     revezar(Estado, AtualJogador, Linha, Col, ProximoEstado).
 
 revezar(Estado, AtualJogador, Linha, Col, ProximoEstado) :-
-    pega_ou_modifica(Estado, 0, Linha, Col, AtualJogador, R0),
-    pega_ou_modifica(Estado, 1, Linha, Col, AtualJogador, R1),
-    pega_ou_modifica(Estado, 2, Linha, Col, AtualJogador, R2),
+    modifica(Estado, 0, Linha, Col, AtualJogador, R0),
+    modifica(Estado, 1, Linha, Col, AtualJogador, R1),
+    modifica(Estado, 2, Linha, Col, AtualJogador, R2),
     ProximoEstado = [ R0, R1, R2].
 
 % ==============================================================================
-% define as posicoes validas
+% entra valor
 % ==============================================================================
-pega_ou_modifica(Estado, Linha, DesiredChangeLinha, _, _, LinhaOut) :-
+modifica(Estado, Linha, DesiredChangeLinha, _, _, LinhaOut) :-
     Linha \= DesiredChangeLinha,
     nth0(Linha, Estado, LinhaOut).
 
-pega_ou_modifica(Estado, Linha, DesiredChangeLinha, Col, Jogador, LinhaOut) :-
+modifica(Estado, Linha, DesiredChangeLinha, Col, Jogador, LinhaOut) :-
     Linha = DesiredChangeLinha,
     Col = 0,
     nth0(Linha, Estado, LinhaEstadoOut),
@@ -282,7 +276,7 @@ pega_ou_modifica(Estado, Linha, DesiredChangeLinha, Col, Jogador, LinhaOut) :-
     nth0(2, LinhaEstadoOut, C2),
     LinhaOut = [Jogador, C1, C2].
 
-pega_ou_modifica(Estado, Linha, DesiredChangeLinha, Col, Jogador, LinhaOut) :-
+modifica(Estado, Linha, DesiredChangeLinha, Col, Jogador, LinhaOut) :-
     Linha = DesiredChangeLinha,
     Col = 1,
     nth0(Linha, Estado, LinhaEstadoOut),
@@ -290,7 +284,7 @@ pega_ou_modifica(Estado, Linha, DesiredChangeLinha, Col, Jogador, LinhaOut) :-
     nth0(2, LinhaEstadoOut, C2),
     LinhaOut = [C0, Jogador, C2].
 
-pega_ou_modifica(Estado, Linha, DesiredChangeLinha, Col, Jogador, LinhaOut) :-
+modifica(Estado, Linha, DesiredChangeLinha, Col, Jogador, LinhaOut) :-
     Linha = DesiredChangeLinha,
     Col = 2,
     nth0(Linha, Estado, LinhaEstadoOut),
@@ -299,13 +293,13 @@ pega_ou_modifica(Estado, Linha, DesiredChangeLinha, Col, Jogador, LinhaOut) :-
     LinhaOut = [C0, C1, Jogador].
 
 % ==============================================================================
-% define as posicoes validas
+% finaliza programa
 % ==============================================================================
 die(X) :- write("Programa Finalizado"), nl, die_(X).
 die_(X) :- die_(X).
 
 % ==============================================================================
-% define as posicoes validas
+% loop
 % ==============================================================================
 faz_loop(Estado, _) :-
     ganhador(_, Estado),
